@@ -3,6 +3,7 @@ import Vuex, { MutationTree, ActionTree } from 'vuex'
 import flatten from 'lodash/flatten'
 import {
   buildGrid,
+  buildDefaultGrid,
   GridParams,
   GridStatus,
   Cell,
@@ -16,6 +17,7 @@ Vue.use(Vuex)
 
 interface RootState {
   grid: Grid
+  debug: boolean
   status: GridStatus
   minesCounter: number
   timer: number
@@ -23,16 +25,10 @@ interface RootState {
 }
 
 const state: RootState = {
-  grid: {
-    layout: [],
-    params: {
-      width: 0,
-      height: 0,
-      minesQuantity: 0
-    }
-  },
+  grid: buildDefaultGrid(9, 9),
+  debug: false,
   minesCounter: 0,
-  status: GridStatus.Pending,
+  status: GridStatus.Idle,
   timer: 0,
   timerInterval: null
 }
@@ -46,6 +42,9 @@ const mutations: MutationTree<RootState> = {
   },
   clearInterval(state) {
     state.timerInterval && clearInterval(state.timerInterval)
+  },
+  setDebug(state, enabled: boolean) {
+    state.debug = enabled
   },
   setStatus(state, status: GridStatus) {
     state.status = status
@@ -93,6 +92,9 @@ const actions: ActionTree<RootState, RootState> = {
   stopGame({ commit }, status: GridStatus) {
     commit('setStatus', status)
     commit('clearInterval')
+  },
+  toggleDebug({ state, commit }) {
+    commit('setDebug', !state.debug)
   },
   сheckSolution({ state, dispatch }) {
     // If player check more cell than mined

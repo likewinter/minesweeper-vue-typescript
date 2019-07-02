@@ -1,6 +1,7 @@
 import { flatten, shuffle, take, compose } from 'lodash/fp'
 
 export enum GridStatus {
+  Idle,
   Pending,
   Solved,
   Failed
@@ -30,6 +31,11 @@ export interface GridParams {
   minesQuantity: number
 }
 
+export interface GameDifficulty {
+  name: string
+  params: GridParams
+}
+
 export type GridLayout = Cell[][]
 
 export type Grid = {
@@ -46,7 +52,7 @@ export function getCellAdjacent(grid: Grid, { x, y }: CellPosition): Cell[] {
   ].filter(v => v)
 }
 
-function buildDefaultGrid(width: number, height: number): Grid {
+export function buildDefaultGrid(width: number, height: number): Grid {
   const layout: GridLayout = Array(height)
     .fill(null)
     .map(
@@ -99,3 +105,12 @@ export function buildGrid({ width, height, minesQuantity }: GridParams): Grid {
     mineGrid(buildDefaultGrid(width, height), minesQuantity)
   )
 }
+
+export const defaultGameDifficulties: GameDifficulty[] = [
+  { name: 'Beginner', params: { width: 9, height: 9, minesQuantity: 10 } },
+  {
+    name: 'Intermediate',
+    params: { width: 15, height: 15, minesQuantity: 40 }
+  },
+  { name: 'Expert', params: { width: 16, height: 30, minesQuantity: 99 } }
+]
