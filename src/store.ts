@@ -2,32 +2,40 @@ import Vue from 'vue'
 import Vuex, { MutationTree, ActionTree } from 'vuex'
 import flatten from 'lodash/flatten'
 import {
-  buildGrid,
-  buildDefaultGrid,
-  GridParams,
-  GridStatus,
   Cell,
   CellState,
   CellPosition,
+  GameDifficulty,
   Grid,
-  getCellAdjacent
+  GridStatus,
+  buildGrid,
+  getCellAdjacent,
+  defaultGameDifficulties as difficulties
 } from './game'
 
 Vue.use(Vuex)
 
+const difficulty = difficulties[0]
+
 interface RootState {
   grid: Grid
   debug: boolean
+  showField: boolean
   status: GridStatus
+  difficulty: GameDifficulty
+  difficulties: GameDifficulty[]
   minesCounter: number
   timer: number
   timerInterval: null | number
 }
 
 const state: RootState = {
-  grid: buildDefaultGrid(9, 9),
+  grid: buildGrid(difficulty.params),
   debug: false,
-  minesCounter: 0,
+  showField: false,
+  difficulty,
+  difficulties,
+  minesCounter: difficulty.params.minesQuantity,
   status: GridStatus.Idle,
   timer: 0,
   timerInterval: null
@@ -46,8 +54,14 @@ const mutations: MutationTree<RootState> = {
   setDebug(state, enabled: boolean) {
     state.debug = enabled
   },
+  setShowField(state, enabled: boolean) {
+    state.showField = enabled
+  },
   setStatus(state, status: GridStatus) {
     state.status = status
+  },
+  setDifficulty(state, difficulty: GameDifficulty) {
+    state.difficulty = difficulty
   },
   resetTimer(state) {
     state.timer = 0
@@ -79,19 +93,23 @@ const actions: ActionTree<RootState, RootState> = {
   startTimer({ commit }) {
     commit('setInterval', setInterval(() => commit('incrementTimer'), 1000))
   },
-  startGame(
-    { commit, dispatch },
-    { width = 9, height = 9, minesQuantity = 10 }: GridParams
-  ) {
-    commit('setGrid', buildGrid({ width, height, minesQuantity }))
-    commit('setMinesCounter', minesQuantity)
+  startGame({ commit, dispatch, state }) {
+    commit('setShowField', false)
+    if (state.status !== GridStatus.Idle)
+      commit('setGrid', buildGrid(state.difficulty.params))
     commit('setStatus', GridStatus.Pending)
     commit('resetTimer')
     dispatch('startTimer')
   },
   stopGame({ commit }, status: GridStatus) {
     commit('setStatus', status)
+    commit('setShowField', true)
     commit('clearInterval')
+  },
+  changeDifficulty({ state, commit }, difficulty: GameDifficulty) {
+    commit('setDifficulty', difficulty)
+    commit('setMinesCounter', difficulty.params.minesQuantity)
+    commit('setGrid', buildGrid(difficulty.params))
   },
   toggleDebug({ state, commit }) {
     commit('setDebug', !state.debug)
@@ -129,17 +147,28 @@ const actions: ActionTree<RootState, RootState> = {
     dispatch('сheckSolution')
   },
   checkCell({ state, commit, dispatch }, cell) {
-    // Do nothing if game not in progress
-    if (state.status !== GridStatus.Pending) return
+    // Do nothing if game is over
+    if (
+      state.status === GridStatus.Solved ||
+      state.status === GridStatus.Failed
+    )
+      return
+
+    // Starts game if it's not yet started
+    if (state.status === GridStatus.Idle) dispatch('startGame')
 
     // Check if cell yet closed
     if (cell.state !== CellState.Closed) return
     // Open cell
     commit('openCell', cell.position)
     // Check if cell was mined or not and stop the game in first case
-    if (cell.mine) dispatch('stopGame', GridStatus.Failed)
-    // Check solution
-    dispatch('сheckSolution')
+    if (cell.mine) {
+      dispatch('stopGame', GridStatus.Failed)
+    } else {
+      if (cell.number === 0) dispatch('openAdjacentCells', cell)
+      // Check solution
+      dispatch('сheckSolution')
+    }
   },
   openAdjacentCells({ state, commit }, cell: Cell) {
     if (cell.state !== CellState.Opened) return

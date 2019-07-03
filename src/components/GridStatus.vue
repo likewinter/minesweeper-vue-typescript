@@ -1,5 +1,8 @@
 <template>
-  <div class="status">Mines {{ minesCounter }}, Timer: {{ timer }}, Status: {{ status }}</div>
+  <div class="status">
+    <div>Mines: {{ minesCounter }}</div>
+    <div>Timer: {{ timer }}</div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -8,11 +11,14 @@ import { State, Action } from 'vuex-class'
 
 @Component
 export default class GridStatus extends Vue {
-  @State status!: GridStatus
   @State minesCounter!: number
   @State timer!: number
 }
 </script>
 
 <style lang="sass" scoped>
+.status
+  display: flex
+  justify-content: space-between
+  font-size: 20px
 </style>

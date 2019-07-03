@@ -23,12 +23,19 @@ export default class GridCell extends Vue {
   @Action flagCell!: ({ x, y }: CellPosition) => void
   @Action openAdjacentCells!: ({ x, y }: CellPosition) => void
   @State debug!: boolean
+  @State showField!: boolean
   cell!: Cell
 
   cellState(cell: Cell): string {
     switch (cell.state) {
       case CellState.Closed:
-        return this.debug ? (cell.mine ? '💣' : `${cell.number}`) : ''
+        return this.debug || this.showField
+          ? cell.mine
+            ? '💣'
+            : cell.number
+            ? `${cell.number}`
+            : ''
+          : ''
       case CellState.Opened:
         return cell.mine ? '💣' : cell.number ? `${cell.number}` : ''
       case CellState.Flagged:
@@ -36,16 +43,22 @@ export default class GridCell extends Vue {
     }
   }
 
-  cellCSSClass(cell: Cell): string {
-    const classes = []
+  cellCSSClass(cell: Cell): string[] {
+    const classes: string[] = []
     switch (cell.state) {
       case CellState.Closed:
-        return 'field-cell-closed'
+        classes.push('field-cell-closed')
+        break
       case CellState.Opened:
-        return 'field-cell-opened'
+        classes.push('field-cell-opened')
+        break
       case CellState.Flagged:
-        return 'field-cell-flagged'
+        classes.push('field-cell-flagged')
+        break
     }
+    classes.push(`field-cell-${cell.number}`)
+
+    return classes
   }
 }
 </script>
@@ -63,8 +76,8 @@ $cell-border-color-2: #666
   justify-content: center
   align-items: center
   background-color: #DDD
-  color: blue
   font-size: 25px
+  font-weight: bold
   border-left: $cell-border solid $cell-border-color-1
   border-top: $cell-border solid $cell-border-color-1
   border-bottom: $cell-border solid $cell-border-color-2
@@ -72,4 +85,16 @@ $cell-border-color-2: #666
   &.field-cell-opened
     border: $cell-border solid #CCC
     background-color: #CCC
+  &.field-cell-1
+    color: blue
+  &.field-cell-2
+    color: green
+  &.field-cell-3
+    color: red
+  &.field-cell-4
+    color: darkblue
+  &.field-cell-5
+    color: brown
+  &.field-cell-6
+    color: darkcyan
 </style>

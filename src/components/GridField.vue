@@ -1,5 +1,5 @@
 <template>
-  <div class="field" v-if="grid">
+  <div class="field" ref="wrapper" :style="{height: `${height}px`}">
     <grid-row :row="row" :index="rowIndex" v-for="(row, rowIndex) in grid.layout" :key="rowIndex"></grid-row>
   </div>
 </template>
@@ -19,14 +19,34 @@ import GridRowComponent from './GridRow.vue'
 })
 export default class GridField extends Vue {
   grid!: Grid
+  width: number = 0
+
+  mounted() {
+    this.handleWidth()
+  }
+
+  created() {
+    window.addEventListener('resize', this.handleWidth)
+  }
+
+  destroyed() {
+    window.removeEventListener('resize', this.handleWidth)
+  }
+
+  handleWidth() {
+    this.width = (this.$refs.wrapper as HTMLElement).offsetWidth
+  }
+
+  get height(): number {
+    return (
+      Math.round(this.width / this.grid.params.width) * this.grid.params.height
+    )
+  }
 }
 </script>
 
 <style lang="sass" scoped>
 .field
-  width: 600px
-  height: 600px
-  margin: 0 auto
   display: flex
   flex-direction: column
 </style>
