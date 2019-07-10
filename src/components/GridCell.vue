@@ -39,7 +39,7 @@ export default class GridCell extends Vue {
       case CellState.Opened:
         return cell.mine ? '💣' : cell.number ? `${cell.number}` : ''
       case CellState.Flagged:
-        return '🚩'
+        return '⛳'
     }
   }
 
@@ -76,7 +76,7 @@ $cell-border-color-2: #666
   justify-content: center
   align-items: center
   background-color: #DDD
-  font-size: 25px
+  font-size: 35px
   font-weight: bold
   border-left: $cell-border solid $cell-border-color-1
   border-top: $cell-border solid $cell-border-color-1

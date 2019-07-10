@@ -97,6 +97,7 @@ const actions: ActionTree<RootState, RootState> = {
     commit('setShowField', false)
     if (state.status !== GridStatus.Idle)
       commit('setGrid', buildGrid(state.difficulty.params))
+    commit('setMinesCounter', state.difficulty.params.minesQuantity)
     commit('setStatus', GridStatus.Pending)
     commit('resetTimer')
     dispatch('startTimer')
@@ -108,6 +109,8 @@ const actions: ActionTree<RootState, RootState> = {
   },
   changeDifficulty({ state, commit }, difficulty: GameDifficulty) {
     commit('setDifficulty', difficulty)
+    commit('setStatus', GridStatus.Idle)
+    commit('setShowField', false)
     commit('setMinesCounter', difficulty.params.minesQuantity)
     commit('setGrid', buildGrid(difficulty.params))
   },
